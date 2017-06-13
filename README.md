@@ -31,7 +31,7 @@ After running `npm run dev` command, web site resource files such as index.html 
 
 ### Step 1: 
 
-Write code and place all files into specified directory by file types.
+Write code and place all files into specified directory depends on file types.
 
 #### HTML files (`.html`)
 
@@ -89,6 +89,11 @@ A production build is almost the same as development one, but Javascript files, 
 
 ### STEP 3
 
-Deploay all of the files and directories in the `/public` directory.
+Run `npm run server` to start [webpac dev server](https://github.com/webpack/webpack-dev-server).
 
+When you change something in your assets, it should live-reload the files.
+
+### STEP 4
+
+Open your browser and visit `http://localhost:9000`
 
