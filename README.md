@@ -64,9 +64,12 @@ All related JavaScript files will be transcompiled, bound and emitted three file
 * `vendor.xxx.js` is a file including all of the third party vendor libraries code.
 * `manifest.xxx.js` is the common code of the webpack.
 
-Finally, `<script>` tags below will automatically injected into your HTML file
+Additionally, `<script>` tags below will automatically injected into your HTML file.
 
 ```html
+<script type="text/javascript" src="/js/manifest.xxx.js"></script>
+<script type="text/javascript" src="/js/vendor.xxx.js"></script>
+<script type="text/javascript" src="/js/app.xxx.js"></script>
 ```
 
 #### Images (`.jpeg`, `jpg`, `gif` and `png`)
