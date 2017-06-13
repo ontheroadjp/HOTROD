@@ -1,13 +1,16 @@
 var webpack = require('webpack');
 var path = require('path');
 var glob = require('glob');
-var conf = require('./config.json');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var PurifyCSSPlugin = require('purifycss-webpack');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
-var inProduction = (process.env.NODE_ENV === 'production');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
+
+var inProduction = (process.env.NODE_ENV === 'production');
+var sourceMap = inProduction ? '' : 'source-map';
+var conf = require('./config.json');
+var favicons = require('./conf/favicons.json');
 
 module.exports = {
     //context: srcPath,
@@ -26,6 +29,8 @@ module.exports = {
         publicPath: conf.publicPath
 	},
 
+    devtool: sourceMap,
+
     devServer: {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
@@ -38,6 +43,30 @@ module.exports = {
             {
                 test: /\.s[ac]ss$/,
                 use: ExtractTextPlugin.extract({
+//                    use: [{
+//                            loader: 'css-loader', 
+//                            options: {
+//                                sourceMap: false
+//                            }
+//                        },
+//
+//                        {
+//                            loader: 'sass-loader', 
+//                            options: {
+//                                sourceMap: false
+//                            }
+//                        },
+//
+//                        {
+//                            loader: 'postcss-loader',
+//                            options: {
+//                                plugins: [
+//                                    require('autoprefixer')(),
+//                                    //require('stylelint')(),
+//                                ]
+//                            }
+//                        }],
+
                     use: [ 'css-loader', 'sass-loader', {
                             loader: 'postcss-loader',
                             options: {
@@ -117,7 +146,11 @@ module.exports = {
         }),
 
         // split xxx.css
-        new ExtractTextPlugin('css/[name].[hash].css'),
+        new ExtractTextPlugin({
+            //filename: 'css/[name].[hash].css',
+            filename: 'css/[name].[contenthash].css',
+            disable: false
+        }),
 
         // minimize css files and remove unused style
         new PurifyCSSPlugin({
@@ -149,25 +182,25 @@ module.exports = {
 
         // for favicons
         new FaviconsWebpackPlugin({
-            logo: path.resolve(__dirname, conf.icons.seedImage),
+            logo: path.resolve(__dirname, favicons.seedImage),
             prefix: 'images/icons-[hash]/',
             emitStats: conf.debug,
             statsFilename: '../stats/icon-stats-[hash].json',
             persistentCache: true,
             inject: true,
-            background: conf.icons.background,
+            background: favicons.background,
             title: conf.title,
             icons: {
-                android: conf.icons.android,
-                appleIcon: conf.icons.appleIcon,
-                appleStartup: conf.icons.appleStartup,
-                coast: conf.icons.coast,
-                favicons: conf.icons.favicons,
-                firefox: conf.icons.firefox,
-                opengraph: conf.icons.opengraph,
-                twitter: conf.icons.twitter,
-                yandex: conf.icons.yandex,
-                windows: conf.icons.windows
+                android: favicons.android,
+                appleIcon: favicons.appleIcon,
+                appleStartup: favicons.appleStartup,
+                coast: favicons.coast,
+                favicons: favicons.favicons,
+                firefox: favicons.firefox,
+                opengraph: favicons.opengraph,
+                twitter: favicons.twitter,
+                yandex: favicons.yandex,
+                windows: favicons.windows
             }
         }),
 
