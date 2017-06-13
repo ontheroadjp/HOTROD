@@ -138,7 +138,12 @@ module.exports = {
             title: conf.title,
             inject: true,
             minify: {
-                removeComments: true
+                collapseInlineTagWhitespace: inProduction,
+                collapseWhitespace: inProduction,
+                removeComments: inProduction,
+                minifyCSS: inProduction,
+                minifyJS: inProduction,
+                minifyURLs: inProduction
             }
         }),
 
