@@ -26,6 +26,13 @@ module.exports = {
         publicPath: conf.publicPath
 	},
 
+    devServer: {
+        contentBase: path.join(__dirname, "dist"),
+        compress: true,
+        port: 9000,
+        clientLogLevel: "info"
+    },
+
     module: {
         rules: [
             {
