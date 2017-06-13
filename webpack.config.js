@@ -5,9 +5,11 @@ var conf = require('./config.json');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var PurifyCSSPlugin = require('purifycss-webpack');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
-var inProduction = (process.env.NODE_ENV === 'production');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
+
+var inProduction = (process.env.NODE_ENV === 'production');
+var sourceMap = inProduction ? '' : 'source-map';
 
 module.exports = {
     //context: srcPath,
@@ -26,6 +28,8 @@ module.exports = {
         publicPath: conf.publicPath
 	},
 
+    devtool: sourceMap,
+
     devServer: {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
@@ -38,6 +42,30 @@ module.exports = {
             {
                 test: /\.s[ac]ss$/,
                 use: ExtractTextPlugin.extract({
+//                    use: [{
+//                            loader: 'css-loader', 
+//                            options: {
+//                                sourceMap: false
+//                            }
+//                        },
+//
+//                        {
+//                            loader: 'sass-loader', 
+//                            options: {
+//                                sourceMap: false
+//                            }
+//                        },
+//
+//                        {
+//                            loader: 'postcss-loader',
+//                            options: {
+//                                plugins: [
+//                                    require('autoprefixer')(),
+//                                    //require('stylelint')(),
+//                                ]
+//                            }
+//                        }],
+
                     use: [ 'css-loader', 'sass-loader', {
                             loader: 'postcss-loader',
                             options: {
@@ -117,7 +145,11 @@ module.exports = {
         }),
 
         // split xxx.css
-        new ExtractTextPlugin('css/[name].[hash].css'),
+        new ExtractTextPlugin({
+            //filename: 'css/[name].[hash].css',
+            filename: 'css/[name].[contenthash].css',
+            disable: false
+        }),
 
         // minimize css files and remove unused style
         new PurifyCSSPlugin({
