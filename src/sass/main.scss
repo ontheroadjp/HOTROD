@@ -1,0 +1,18 @@
+$primary: #0f2350;
+
+body {
+/*    background: url('../images/logo_white_250.png'); */
+    background-color: $primary;
+}
+
+.wrapper {
+  position: relative;
+  height: 100vh;
+}
+
+.content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

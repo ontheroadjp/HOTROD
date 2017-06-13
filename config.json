@@ -1,0 +1,23 @@
+{
+    "debug": true,
+    "publicPath": "/",
+    "title": "Hello Webpack%21 - HOTROD",
+    "icons": {
+        "seedImage": "src/images/logo_white_250.png",
+        "background": "#000",
+        "android": false,
+        "appleIcon": false,
+        "appleStartup": false,
+        "coast": false,
+        "favicons": true,
+        "firefox": false,
+        "opengraph": false,
+        "twitter": false,
+        "yandex": false,
+        "windows": false
+    },
+    "googleAnalytics": {
+        "trackingId": "UA-XXXX-XX",
+        "pageViewOnLoad": true
+    }
+}
