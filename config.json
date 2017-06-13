@@ -1,9 +1,3 @@
 {
-    "debug": true,
-    "publicPath": "/",
-    "title": "Hello Webpack%21 - HOTROD",
-    "googleAnalytics": {
-        "trackingId": "UA-XXXX-XX",
-        "pageViewOnLoad": true
-    }
+    "debug": true
 }

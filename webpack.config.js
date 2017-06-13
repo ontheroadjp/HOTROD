@@ -10,6 +10,7 @@ var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 var inProduction = (process.env.NODE_ENV === 'production');
 var sourceMap = inProduction ? '' : 'source-map';
 var conf = require('./config.json');
+var siteConfig = require('./conf/site.json');
 var favicons = require('./conf/favicons.json');
 
 module.exports = {
@@ -26,7 +27,7 @@ module.exports = {
 	output: {
 		path: path.resolve(__dirname, './public'),
 		filename: 'js/[name].[chunkhash].js',
-        publicPath: conf.publicPath
+        publicPath: siteConfig.publicPath
 	},
 
     devtool: sourceMap,
@@ -168,7 +169,7 @@ module.exports = {
             //template: 'src/index.html'
             template: path.resolve(__dirname, 'src/index.html'),
             mobile: false,
-            title: conf.title,
+            title: siteConfig.title,
             inject: true,
             minify: {
                 collapseInlineTagWhitespace: inProduction,
@@ -177,7 +178,8 @@ module.exports = {
                 minifyCSS: inProduction,
                 minifyJS: inProduction,
                 minifyURLs: inProduction
-            }
+            },
+            googleAnalytics: siteConfig.googleAnalytics
         }),
 
         // for favicons
