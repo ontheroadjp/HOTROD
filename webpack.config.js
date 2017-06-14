@@ -13,6 +13,7 @@ var conf = require('./config.json');
 var siteConfig = require('./conf/site.json');
 var favicons = require('./conf/favicons.json');
 
+
 module.exports = {
     //context: srcPath,
 
@@ -97,16 +98,7 @@ module.exports = {
             {
                 test: /\.(png|jpe?g|gif)$/,
                 use: ['file-loader?name=images/[hash].[ext]', 'img-loader']
-            },
-//            {
-//                test: /\.html$/,
-//                use: [{
-//                    loader: 'html-loader',
-//                    options: {
-//                        minimize: true
-//                    }
-//                }]
-//            }
+            }
         ]
     },
 
@@ -164,24 +156,6 @@ module.exports = {
             minimize: inProduction
         }),
 
-        // for HTML
-        new HtmlWebpackPlugin({
-            //template: 'src/index.html'
-            template: path.resolve(__dirname, 'src/index.html'),
-            mobile: false,
-            title: siteConfig.title,
-            inject: true,
-            minify: {
-                collapseInlineTagWhitespace: inProduction,
-                collapseWhitespace: inProduction,
-                removeComments: inProduction,
-                minifyCSS: inProduction,
-                minifyJS: inProduction,
-                minifyURLs: inProduction
-            },
-            googleAnalytics: siteConfig.googleAnalytics
-        }),
-
         // for favicons
         new FaviconsWebpackPlugin({
             logo: path.resolve(__dirname, favicons.seedImage),
@@ -208,9 +182,31 @@ module.exports = {
 
         // for moment.js
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /ja|cn/),
-
     ]
 };
+
+// for HTML
+var templates = glob.sync(path.join(__dirname, 'src/**/*.html'));
+templates.forEach( val => {
+    console.log('val: ' + val);
+    module.exports.plugins.push(
+        new HtmlWebpackPlugin({
+            template: val,
+            mobile: false,
+            title: siteConfig.title,
+            inject: true,
+            minify: {
+                collapseInlineTagWhitespace: inProduction,
+                collapseWhitespace: inProduction,
+                removeComments: inProduction,
+                minifyCSS: inProduction,
+                minifyJS: inProduction,
+                minifyURLs: inProduction
+            },
+            googleAnalytics: siteConfig.googleAnalytics
+        })
+    );
+});
 
 if( inProduction ) {
     module.exports.plugins.push(
