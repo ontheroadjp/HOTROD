@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "ejs": "node hoge.js",
-    "dev": "node_modules/.bin/webpack --profile --colors",
+    "ejs": "node bin/ejs.js",
+    "build": "node_modules/.bin/webpack --profile --colors",
     "production": "NODE_ENV=production npm run dev",
-    "server": "npm run ejs && node_modules/.bin/webpack-dev-server",
-    "watch": "npm run dev -- --watch",
+    "server": "node_modules/.bin/webpack-dev-server",
+    "watch": "npm run build -- --watch",
     "lint:ejs": "node_modules/.bin/ejslint src/**/*.ejs",
     "clean": "find src/ -name *.html | xargs rm && rm -rf public/ stats/"
   },
@@ -38,6 +38,7 @@
     "style-loader": "^0.18.2",
     "stylelint": "^7.11.0",
     "url-loader": "^0.5.8",
+    "watch": "^1.0.2",
     "webpack": "^2.6.1",
     "webpack-dev-server": "^2.4.5"
   },
