@@ -1,6 +1,8 @@
 var webpack = require('webpack');
 var path = require('path');
 var glob = require('glob');
+var fs = require('fs');
+var ejs = require('ejs');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var PurifyCSSPlugin = require('purifycss-webpack');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
@@ -13,6 +15,10 @@ var conf = require('./config.json');
 var siteConfig = require('./conf/site.json');
 var favicons = require('./conf/favicons.json');
 
+var EJSRenderPlugin = require('./plugins/EJSRenderPlugin.js');
+var FileListPlugin = require('./plugins/FileListPlugin.js');
+var WatchGraphPlugin = require('./plugins/WatchGraphPlugin.js');
+//var TestPlugin = require('./plugins/TestPlugin.js');
 
 module.exports = {
     //context: srcPath,
@@ -115,7 +121,7 @@ module.exports = {
         function() {
             if( conf.debug ) {
                 this.plugin('done', stats => {
-                    require('fs').writeFileSync(
+                    fs.writeFileSync(
                         path.join(__dirname, 'stats/chunk-stats.json'),
                         //JSON.stringify(stats.toJson().assetsByChunkName, 'utf8')
                         JSON.stringify(stats.toJson(), 'utf8')
@@ -182,16 +188,24 @@ module.exports = {
 
         // for moment.js
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /ja|cn/),
+
+        new EJSRenderPlugin({ options: '' }),
+        //new TestPlugin({ options: '' }),
+        new FileListPlugin({ options: '' }),
+        new WatchGraphPlugin({ options: '' }),
+
     ]
 };
 
 // for HTML
-var templates = glob.sync(path.join(__dirname, 'src/**/*.html'));
-templates.forEach( val => {
-    console.log('val: ' + val);
+console.log('----------------------------------------');
+var paths = glob.sync(path.join(__dirname, 'src/**/*.html'));
+paths.forEach( htmlFilePath => {
+    if( htmlFilePath.match('/src/partials/')) return;
     module.exports.plugins.push(
         new HtmlWebpackPlugin({
-            template: val,
+            template: htmlFilePath,
+            filename: htmlFilePath.replace(path.join(__dirname, 'src/'), ''),
             mobile: false,
             title: siteConfig.title,
             inject: true,
