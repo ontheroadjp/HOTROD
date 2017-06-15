@@ -5,3 +5,4 @@ node_modules/
 public/
 src/**/*.html
 stats/
+src/**/*.html

@@ -10,7 +10,7 @@
     "server": "npm run ejs && node_modules/.bin/webpack-dev-server",
     "watch": "npm run dev -- --watch",
     "lint:ejs": "node_modules/.bin/ejslint src/**/*.ejs",
-    "clean": "find src/ -name *.html | xargs rm && rm -rf public/"
+    "clean": "find src/ -name *.html | xargs rm && rm -rf public/ stats/"
   },
   "keywords": [],
   "author": "",
