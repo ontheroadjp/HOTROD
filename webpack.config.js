@@ -33,16 +33,20 @@ module.exports = {
 
 	output: {
 		path: path.resolve(__dirname, './public'),
-		filename: 'js/[name].[chunkhash].js',
+		filename: 'js/[name].[hash].js',
+        //publicPath: 'http://localhost:9000' + siteConfig.publicPath
         publicPath: siteConfig.publicPath
 	},
+
+    cache: false,
 
     devtool: sourceMap,
 
     devServer: {
-        contentBase: path.join(__dirname, "dist"),
+        contentBase: path.join(__dirname, "public"),
         compress: true,
         port: 9000,
+        inline: true,
         clientLogLevel: "info"
     },
 
@@ -201,7 +205,7 @@ module.exports = {
 console.log('----------------------------------------');
 var paths = glob.sync(path.join(__dirname, 'src/**/*.html'));
 paths.forEach( htmlFilePath => {
-    if( htmlFilePath.match('/src/partials/')) return;
+    //if( htmlFilePath.match('/src/partials/')) return;
     module.exports.plugins.push(
         new HtmlWebpackPlugin({
             template: htmlFilePath,
