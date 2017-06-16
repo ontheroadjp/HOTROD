@@ -202,15 +202,13 @@ module.exports = {
 };
 
 // for HTML
-console.log('----------------------------------------');
+console.log('-------------------- @webpack.config.js --------------------');
 var paths = glob.sync(path.join(__dirname, 'src/**/*.html'));
 paths.forEach( (htmlFilePath, index) => {
-    //if( htmlFilePath.match('/src/partials/')) return;
     module.exports.plugins.push(
         new HtmlWebpackPlugin({
             template: htmlFilePath,
             filename: htmlFilePath.replace(path.join(__dirname, 'src/'), ''),
-            eventHookEnable: index == 0 ? true : false,
             mobile: false,
             title: siteConfig.title,
             inject: true,
@@ -226,6 +224,8 @@ paths.forEach( (htmlFilePath, index) => {
         })
     );
 });
+
+//module.exports.plugins.push( new EJSRenderPlugin({ options: '' }));
 
 if( inProduction ) {
     module.exports.plugins.push(
