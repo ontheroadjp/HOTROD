@@ -17,8 +17,6 @@ var favicons = require('./conf/favicons.json');
 
 var EJSRenderPlugin = require('./plugins/EJSRenderPlugin.js');
 var FileListPlugin = require('./plugins/FileListPlugin.js');
-var WatchGraphPlugin = require('./plugins/WatchGraphPlugin.js');
-//var TestPlugin = require('./plugins/TestPlugin.js');
 
 module.exports = {
     //context: srcPath,
@@ -46,7 +44,7 @@ module.exports = {
         contentBase: path.join(__dirname, "public"),
         compress: true,
         port: 9000,
-        inline: true,
+//        inline: true,
         clientLogLevel: "info"
     },
 
@@ -121,18 +119,18 @@ module.exports = {
             dry:      false
         }),
 
-        // export chunk manifest
-        function() {
-            if( conf.debug ) {
-                this.plugin('done', stats => {
-                    fs.writeFileSync(
-                        path.join(__dirname, 'stats/chunk-stats.json'),
-                        //JSON.stringify(stats.toJson().assetsByChunkName, 'utf8')
-                        JSON.stringify(stats.toJson(), 'utf8')
-                    );
-                });
-            }
-        },
+//        // export chunk manifest
+//        function() {
+//            if( conf.debug ) {
+//                this.plugin('done', stats => {
+//                    fs.writeFileSync(
+//                        path.join(__dirname, 'stats/chunk-stats.json'),
+//                        //JSON.stringify(stats.toJson().assetsByChunkName, 'utf8')
+//                        JSON.stringify(stats.toJson(), 'utf8')
+//                    );
+//                });
+//            }
+//        },
 
         // split vendor.js
         new webpack.optimize.CommonsChunkPlugin({
@@ -193,11 +191,7 @@ module.exports = {
         // for moment.js
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /ja|cn/),
 
-        new EJSRenderPlugin({ options: '' }),
-        //new TestPlugin({ options: '' }),
         new FileListPlugin({ options: '' }),
-        new WatchGraphPlugin({ options: '' }),
-
     ]
 };
 
