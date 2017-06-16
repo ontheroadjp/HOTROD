@@ -31,7 +31,7 @@ function generateHtmlToStorage(values) {
     });
 }
 
-function addAssetsToCompilation(values) {
+function addAssetsToCompilation(compilation, values) {
     console.log("Add assets to the compilation...");
     values.forEach(function(val) {
         compilation.assets[val.key] = {
@@ -47,28 +47,43 @@ function addAssetsToCompilation(values) {
     });
 }
 
-function monitorChangeFiles() {
+function getChangedFiles(compilation) {
     var changedFiles = Object.keys(compilation.fileTimestamps).filter(function(watchfile) {
         return (this.prevTimestamps[watchfile] || this.startTime) < (compilation.fileTimestamps[watchfile] || Infinity);
     }.bind(this));
 
-    console.log('File Changed!!! ' + changedFiles);
     this.prevTimestamps = compilation.fileTimestamps;
+    return changedFiles;
 }
 
 EJSRenderPlugin.prototype.apply = function(compiler) {
-
-    console.log('Start EJS rendering...');
+    console.log('Start: EJS-Render-Plugin...');
     
     var self = this;
 
     compiler.plugin('compilation', function (compilation) {
+
+        var changedFiles = getChangedFiles(compilation);
+        var ejsChanged = false;
+
+        changedFiles.forEach( file => {
+            console.log('Changed File: ' + file);
+            if(!ejsChanged) {
+                ejsChanged = file.match(/\.ejs$/) ? true : false;
+            }
+        });
+
         compilation.plugin(
             'html-webpack-plugin-before-html-processing', 
             function(htmlPluginData, callback) {
+                if (!ejsChanged || !htmlPluginData.plugin.options.eventHookEnable) {
+                    callback(null, htmlPluginData);
+                    return;
+                }
+
                 console.log('HTML-WEBPACK-PLUGIN-BEFORE-HTML-PROCESSING');
-                var results = self.render();
-                generateHtmlToStorage(results);
+                generateHtmlToStorage(self.render());
+
                 callback(null, htmlPluginData);
             }
         );
@@ -76,16 +91,19 @@ EJSRenderPlugin.prototype.apply = function(compiler) {
 
     compiler.plugin('emit', function (compilation, callback) {
 
+        //addAssetsToCompilation(compilation, self.render());
+        generateHtmlToStorage(self.render());
+
+        compilation.fileDependencies = [];
         self.paths.forEach(function(ejsPath) {
             console.log('[' + ejsPath + ']');
-            compilation.fileDependencies = [ ejsPath ];
-            compilation.fileDependencies = [ ejsPath.replace(/\.ejs$/, '.html') ];
+            compilation.fileDependencies.push(ejsPath);
+            //compilation.fileDependencies.push(ejsPath.replace(/\.ejs$/, '.html'));
         });
 
         callback(null);
 
-//    }.bind(this));
-    });
+    }.bind(this));
 }
 
 EJSRenderPlugin.prototype.render = function() {
