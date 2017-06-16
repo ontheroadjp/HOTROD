@@ -5,34 +5,55 @@ var ejs = require('ejs');
 var watch = require('watch');
 
 function EJSRenderPlugin(options) {
-    this.paths = getPaths();
-    generateHtmlToStorage(this.render());
+    generateHTML(getEjsFullPaths());
 
     // for monitor
     this.startTime = Date.now();
     this.prevTimestamps = {};
 }
 
-function getPaths() {
-//    return glob.sync(path.join(__dirname, '../src/**/*.ejs'));
-    var all = glob.sync(path.join(__dirname, '../src/**/*.ejs'));
-    return all.filter( function(v) {
-        return !v.match('partials/');
+/** return array() */
+function getEjsFullPaths() {
+    return glob.sync(path.join(__dirname, '../src/**/*.ejs'));
+}
+
+/** return void */
+function generateHTML(paths = []) {
+    paths.forEach( function(ejsPath) {
+        var ejsContent = fs.readFileSync( ejsPath, 'utf8');
+        htmlContent = ejs.render(ejsContent, { filename: 'src/partials/' });
+
+        var relativePathEjs = ejsPath.replace(path.join(__dirname, '../'), '../');
+        var relativePathHtml = relativePathEjs.replace(/\.ejs$/,'.html');
+        var fullPathHtml = path.join(__dirname, relativePathHtml);
+
+        fs.writeFileSync( fullPathHtml, htmlContent);
+        console.log("[Generate HTML]: " + fullPathHtml);
     });
 }
 
-function generateHtmlToStorage(values) {
-    console.log("Generate HTML files to Storage...");
-    values.forEach(function(val) {
-        fs.writeFileSync(
-            path.join(__dirname, val.key),
-            val.content
-        );
+/** return void */
+function addCompilationAssets(compilation, paths = []) {
+    paths.forEach( function(ejsPath) {
+        var ejsContent = fs.readFileSync( ejsPath, 'utf8');
+        htmlContent = ejs.render(ejsContent, { filename: 'src/partials/' });
+
+        var relativePathEjs = ejsPath.replace(path.join(__dirname, '../'), '../');
+        var relativePathHtml = relativePathEjs.replace(/\.ejs$/,'.html')
+
+        compilation.assets[relativePathHtml] = {
+            source: function() {
+                return htmlContent;
+            },
+            size: function() {
+                return htmlContent.length;
+            }
+        };
     });
 }
 
+/** return void */
 function addAssetsToCompilation(compilation, values) {
-    console.log("Add assets to the compilation...");
     values.forEach(function(val) {
         compilation.assets[val.key] = {
             source: function() {
@@ -42,18 +63,7 @@ function addAssetsToCompilation(compilation, values) {
                 return val.content.length;
             }
         };
-//        var watchFile = path.join(__dirname, result.key.replace(/\.html$/,'.ejs'));
-//        compilation.fileDependencies = [ watchFile ];
     });
-}
-
-function getChangedFiles(compilation) {
-    var changedFiles = Object.keys(compilation.fileTimestamps).filter(function(watchfile) {
-        return (this.prevTimestamps[watchfile] || this.startTime) < (compilation.fileTimestamps[watchfile] || Infinity);
-    }.bind(this));
-
-    this.prevTimestamps = compilation.fileTimestamps;
-    return changedFiles;
 }
 
 EJSRenderPlugin.prototype.apply = function(compiler) {
@@ -61,55 +71,58 @@ EJSRenderPlugin.prototype.apply = function(compiler) {
     
     var self = this;
 
-    compiler.plugin('compilation', function (compilation) {
-
-        var changedFiles = getChangedFiles(compilation);
-        var ejsChanged = false;
-
-        changedFiles.forEach( file => {
-            console.log('Changed File: ' + file);
-            if(!ejsChanged) {
-                ejsChanged = file.match(/\.ejs$/) ? true : false;
-            }
-        });
-
-        compilation.plugin(
-            'html-webpack-plugin-before-html-processing', 
-            function(htmlPluginData, callback) {
-                if (!ejsChanged || !htmlPluginData.plugin.options.eventHookEnable) {
-                    callback(null, htmlPluginData);
-                    return;
-                }
-
-                console.log('HTML-WEBPACK-PLUGIN-BEFORE-HTML-PROCESSING');
-                generateHtmlToStorage(self.render());
-
-                callback(null, htmlPluginData);
-            }
-        );
-    });
+//    compiler.plugin('compilation', function (compilation) {
+//        console.log('<<<<<< compiler.pugin(\'compilation\') >>>>>>');
+//
+//        compilation.plugin(
+//            'html-webpack-plugin-before-html-processing', 
+//            function(htmlPluginData, callback) {
+//                console.log('<<<<<< HTML-WEBPACK-PLUGIN-BEFORE-HTML-PROCESSING >>>>>>');
+//
+//                //generateHTML(getEjsFullPaths());
+//
+//                callback(null, htmlPluginData);
+//            }
+//        );
+//    });
 
     compiler.plugin('emit', function (compilation, callback) {
+        console.log('<<<<<< compiler.plugin(\'emit\') >>>>>>');
 
-        //addAssetsToCompilation(compilation, self.render());
-        generateHtmlToStorage(self.render());
+        this.changedFiles = Object.keys(compilation.fileTimestamps).filter(function(watchfile) {
+            return (this.prevTimestamps[watchfile] || this.startTime) < (compilation.fileTimestamps[watchfile] || Infinity);
+        }.bind(this));
+        this.prevTimestamps = compilation.fileTimestamps;
+
+        if(this.changedFiles) {
+            this.changedFiles.forEach( v => console.log('[ChangedFiles]: ' + v));
+            this.changedFiles = this.changedFiles.filter( v => (v.indexOf('.ejs') != -1));
+            this.changedFiles.forEach( v => console.log('[ChangedFiles](Filtered): ' + v));
+            //addCompilationAssets(compilation, this.changedFiles);
+            generateHTML(this.changedFiles);
+        } else {
+            //addAssetsToCompilation(compilation, self.render(getEjsFullPaths()));
+            generateHTML(getEjsFullPaths());
+        }
 
         compilation.fileDependencies = [];
-        self.paths.forEach(function(ejsPath) {
-            console.log('[' + ejsPath + ']');
+        var paths = getEjsFullPaths();
+        paths.forEach(function(ejsPath) {
+            console.log('[fileDependencies]: ' + ejsPath);
             compilation.fileDependencies.push(ejsPath);
-            //compilation.fileDependencies.push(ejsPath.replace(/\.ejs$/, '.html'));
+            compilation.fileDependencies.push(ejsPath.replace(/\.ejs$/, '.html'));
         });
 
-        callback(null);
+        callback();
 
     }.bind(this));
+
 }
 
-EJSRenderPlugin.prototype.render = function() {
+EJSRenderPlugin.prototype.render = function(paths = []) {
     var results = []
 
-    this.paths.forEach( function(ejsPath) {
+    paths.forEach( function(ejsPath) {
 
         var html = fs.readFileSync( ejsPath, 'utf8');
         html = ejs.render(html, { filename: 'src/partials/' });
