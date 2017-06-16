@@ -204,12 +204,13 @@ module.exports = {
 // for HTML
 console.log('----------------------------------------');
 var paths = glob.sync(path.join(__dirname, 'src/**/*.html'));
-paths.forEach( htmlFilePath => {
+paths.forEach( (htmlFilePath, index) => {
     //if( htmlFilePath.match('/src/partials/')) return;
     module.exports.plugins.push(
         new HtmlWebpackPlugin({
             template: htmlFilePath,
             filename: htmlFilePath.replace(path.join(__dirname, 'src/'), ''),
+            eventHookEnable: index == 0 ? true : false,
             mobile: false,
             title: siteConfig.title,
             inject: true,
