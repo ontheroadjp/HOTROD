@@ -5,7 +5,7 @@ var ejs = require('ejs');
 var watch = require('watch');
 
 function EJSRenderPlugin(options) {
-    generateHTML(getEjsFullPaths());
+    //generateHTML(getEjsFullPaths());
 
     // for monitor
     this.startTime = Date.now();
@@ -18,7 +18,7 @@ function getEjsFullPaths() {
 }
 
 /** return void */
-function generateHTML(paths = []) {
+function generateHTML(paths) {
     paths.forEach( function(ejsPath) {
         var ejsContent = fs.readFileSync( ejsPath, 'utf8');
         htmlContent = ejs.render(ejsContent, { filename: 'src/partials/' });
@@ -32,39 +32,39 @@ function generateHTML(paths = []) {
     });
 }
 
-/** return void */
-function addCompilationAssets(compilation, paths = []) {
-    paths.forEach( function(ejsPath) {
-        var ejsContent = fs.readFileSync( ejsPath, 'utf8');
-        htmlContent = ejs.render(ejsContent, { filename: 'src/partials/' });
+///** return void */
+//function addCompilationAssets(compilation, paths = []) {
+//    paths.forEach( function(ejsPath) {
+//        var ejsContent = fs.readFileSync( ejsPath, 'utf8');
+//        htmlContent = ejs.render(ejsContent, { filename: 'src/partials/' });
+//
+//        var relativePathEjs = ejsPath.replace(path.join(__dirname, '../'), '../');
+//        var relativePathHtml = relativePathEjs.replace(/\.ejs$/,'.html')
+//
+//        compilation.assets[relativePathHtml] = {
+//            source: function() {
+//                return htmlContent;
+//            },
+//            size: function() {
+//                return htmlContent.length;
+//            }
+//        };
+//    });
+//}
 
-        var relativePathEjs = ejsPath.replace(path.join(__dirname, '../'), '../');
-        var relativePathHtml = relativePathEjs.replace(/\.ejs$/,'.html')
-
-        compilation.assets[relativePathHtml] = {
-            source: function() {
-                return htmlContent;
-            },
-            size: function() {
-                return htmlContent.length;
-            }
-        };
-    });
-}
-
-/** return void */
-function addAssetsToCompilation(compilation, values) {
-    values.forEach(function(val) {
-        compilation.assets[val.key] = {
-            source: function() {
-                return val.content;
-            },
-            size: function() {
-                return val.content.length;
-            }
-        };
-    });
-}
+///** return void */
+//function addAssetsToCompilation(compilation, values) {
+//    values.forEach(function(val) {
+//        compilation.assets[val.key] = {
+//            source: function() {
+//                return val.content;
+//            },
+//            size: function() {
+//                return val.content.length;
+//            }
+//        };
+//    });
+//}
 
 EJSRenderPlugin.prototype.apply = function(compiler) {
     console.log('Start: EJS-Render-Plugin...');
@@ -89,31 +89,61 @@ EJSRenderPlugin.prototype.apply = function(compiler) {
     compiler.plugin('emit', function (compilation, callback) {
         console.log('<<<<<< compiler.plugin(\'emit\') >>>>>>');
 
-        this.changedFiles = Object.keys(compilation.fileTimestamps).filter(function(watchfile) {
+        var changedFiles = Object.keys(compilation.fileTimestamps).filter(function(watchfile) {
             return (this.prevTimestamps[watchfile] || this.startTime) < (compilation.fileTimestamps[watchfile] || Infinity);
         }.bind(this));
         this.prevTimestamps = compilation.fileTimestamps;
 
-        if(this.changedFiles) {
-            this.changedFiles.forEach( v => console.log('[ChangedFiles]: ' + v));
-            this.changedFiles = this.changedFiles.filter( v => (v.indexOf('.ejs') != -1));
-            this.changedFiles.forEach( v => console.log('[ChangedFiles](Filtered): ' + v));
-            //addCompilationAssets(compilation, this.changedFiles);
-            generateHTML(this.changedFiles);
-        } else {
-            //addAssetsToCompilation(compilation, self.render(getEjsFullPaths()));
-            generateHTML(getEjsFullPaths());
+//        changedFiles.forEach( v => console.log('[ChangedFiles]: ' + v));
+        changedFiles = changedFiles.filter( v => (v.indexOf('.ejs') != -1));
+//        changedFiles.forEach( v => console.log('[ChangedFiles](Filtered): ' + v));
+
+        generateHTML(changedFiles);
+
+        var targetFiles = changedFiles.length > 0 ? changedFiles : getEjsFullPaths();
+        //addCompilationAssets(compilation, targetFiles);
+
+        if(!compilation.fileDependencies) {
+            compilation.fileDependencies = [];
         }
 
-        compilation.fileDependencies = [];
-        var paths = getEjsFullPaths();
-        paths.forEach(function(ejsPath) {
+        targetFiles.forEach(function(ejsPath) {
             console.log('[fileDependencies]: ' + ejsPath);
             compilation.fileDependencies.push(ejsPath);
-            compilation.fileDependencies.push(ejsPath.replace(/\.ejs$/, '.html'));
+//            compilation.fileDependencies.push(ejsPath.replace(/\.ejs$/, '.html'));
         });
 
-        callback();
+
+//        var changedFiles = Object.keys(compilation.fileTimestamps).filter(function(watchfile) {
+//            return (this.prevTimestamps[watchfile] || this.startTime) < (compilation.fileTimestamps[watchfile] || Infinity);
+//        }.bind(this));
+//        this.prevTimestamps = compilation.fileTimestamps;
+//
+//        if(changedFiles.length > 0 ) {
+//            console.log('FileChanged!!!!!!!!!!!');
+////            changedFiles.forEach( v => console.log('[ChangedFiles]: ' + v));
+//            changedFiles = changedFiles.filter( v => (v.indexOf('.ejs') != -1));
+////            changedFiles.forEach( v => console.log('[ChangedFiles](Filtered): ' + v));
+//            //addCompilationAssets(compilation, changedFiles);
+//            generateHTML(changedFiles);
+//        } else {
+//            console.log('File \'NOT\' Changed!!!!!!!!!!!');
+//            //addAssetsToCompilation(compilation, self.render(getEjsFullPaths()));
+////            generateHTML(getEjsFullPaths());
+//        }
+//
+//        if(!compilation.fileDependencies) {
+//            compilation.fileDependencies = [];
+//        }
+//
+//        var paths = changedFiles.length > 0 ? changedFiles : getEjsFullPaths();
+//        paths.forEach(function(ejsPath) {
+//            console.log('[fileDependencies]: ' + ejsPath);
+//            compilation.fileDependencies.push(ejsPath);
+////            compilation.fileDependencies.push(ejsPath.replace(/\.ejs$/, '.html'));
+//        });
+
+        callback(null);
 
     }.bind(this));
 
