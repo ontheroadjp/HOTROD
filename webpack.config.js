@@ -10,7 +10,6 @@ var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 
 var inProduction = (process.env.NODE_ENV === 'production');
 var sourceMap = inProduction ? '' : 'source-map';
-var conf = require('./config.json');
 var siteConfig = require('./conf/site.json');
 var favicons = require('./conf/favicons.json');
 
@@ -44,34 +43,9 @@ module.exports = {
     },
 
     module: {
-        rules: [
-            {
+        rules: [{
                 test: /\.s[ac]ss$/,
                 use: ExtractTextPlugin.extract({
-//                    use: [{
-//                            loader: 'css-loader', 
-//                            options: {
-//                                sourceMap: false
-//                            }
-//                        },
-//
-//                        {
-//                            loader: 'sass-loader', 
-//                            options: {
-//                                sourceMap: false
-//                            }
-//                        },
-//
-//                        {
-//                            loader: 'postcss-loader',
-//                            options: {
-//                                plugins: [
-//                                    require('autoprefixer')(),
-//                                    //require('stylelint')(),
-//                                ]
-//                            }
-//                        }],
-
                     use: [ 'css-loader', 'sass-loader', {
                             loader: 'postcss-loader',
                             options: {
@@ -84,21 +58,17 @@ module.exports = {
                     ],
                     fallback: 'style-loader'
                 })
-            },
-            {
+            }, {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
-            },
-            {
+            }, {
                 test: /\.js$/,
                 exclude: /node_modules/,
                 use: "babel-loader"
-            },
-            {
+            }, {
                 test: /\.(svg|eot|ttf|woff|woff2)$/,
                 use: 'file-loader'
-            },
-            {
+            }, {
                 test: /\.(png|jpe?g|gif)$/,
                 use: ['file-loader?name=images/[name].[ext]', 'img-loader']
             }
@@ -109,23 +79,23 @@ module.exports = {
         // clean destination directory
         new CleanWebpackPlugin(['public'], {
             root:     __dirname,
-            //exclude:  ['images/icons-*/*'],
+            exclude:  [''],
             verbose:  true,
             dry:      false
         }),
 
-//        // export chunk manifest
-//        function() {
-//            if( conf.debug ) {
-//                this.plugin('done', stats => {
-//                    fs.writeFileSync(
-//                        path.join(__dirname, 'stats/chunk-stats.json'),
-//                        //JSON.stringify(stats.toJson().assetsByChunkName, 'utf8')
-//                        JSON.stringify(stats.toJson(), 'utf8')
-//                    );
-//                });
-//            }
-//        },
+        // export chunk manifest
+        function() {
+            if( process.env.NODE_DEBUG ) {
+                this.plugin('done', stats => {
+                    fs.writeFileSync(
+                        path.join(__dirname, 'stats/chunk-stats.json'),
+                        //JSON.stringify(stats.toJson().assetsByChunkName, 'utf8')
+                        JSON.stringify(stats.toJson(), 'utf8')
+                    );
+                });
+            }
+        },
 
         // split vendor.js
         new webpack.optimize.CommonsChunkPlugin({
@@ -163,12 +133,12 @@ module.exports = {
         new FaviconsWebpackPlugin({
             logo: path.resolve(__dirname, favicons.seedImage),
             prefix: 'images/icons-[hash]/',
-            emitStats: conf.debug,
+            emitStats: process.env.NODE_DEBUG,
             statsFilename: '../stats/icon-stats-[hash].json',
             persistentCache: true,
             inject: true,
             background: favicons.background,
-            title: conf.title,
+            title: siteConfig.title,
             icons: {
                 android: favicons.android,
                 appleIcon: favicons.appleIcon,
@@ -216,6 +186,8 @@ paths.forEach( (htmlFilePath, index) => {
 });
 
 if( inProduction ) {
+
+    // minimize JS
     module.exports.plugins.push(
         new webpack.optimize.UglifyJsPlugin()
     );
