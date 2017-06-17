@@ -18,6 +18,8 @@ var favicons = require('./conf/favicons.json');
 var EJSRenderPlugin = require('./plugins/EJSRenderPlugin.js');
 var FileListPlugin = require('./plugins/FileListPlugin.js');
 
+//var logo_250 = require("ejs-compiled!./src/images/logo_white_250.png");
+
 module.exports = {
     //context: srcPath,
 
@@ -105,7 +107,7 @@ module.exports = {
             },
             {
                 test: /\.(png|jpe?g|gif)$/,
-                use: ['file-loader?name=images/[hash].[ext]', 'img-loader']
+                use: ['file-loader?name=images/[name].[ext]', 'img-loader']
             }
         ]
     },
@@ -155,7 +157,7 @@ module.exports = {
 
         // minimize css files and remove unused style
         new PurifyCSSPlugin({
-            paths: glob.sync(path.join(__dirname, 'src/**/*.html')),
+            paths: glob.sync(path.join(__dirname, 'src/**/*.ejs')),
             minimize: inProduction
         }),
 
@@ -197,12 +199,15 @@ module.exports = {
 
 // for HTML
 console.log('-------------------- @webpack.config.js --------------------');
-var paths = glob.sync(path.join(__dirname, 'src/**/*.html'));
+//var paths = glob.sync(path.join(__dirname, 'src/**/*.html'));
+var paths = glob.sync(path.join(__dirname, 'src/**/*.ejs'));
 paths.forEach( (htmlFilePath, index) => {
     module.exports.plugins.push(
         new HtmlWebpackPlugin({
-            template: htmlFilePath,
-            filename: htmlFilePath.replace(path.join(__dirname, 'src/'), ''),
+//            template: htmlFilePath,
+//            filename: htmlFilePath.replace(path.join(__dirname, 'src/'), ''),
+            template: 'ejs-compiled-loader!' + htmlFilePath,
+            filename: htmlFilePath.replace(path.join(__dirname, 'src/'), '').replace(/\.ejs$/, '.html'),
             mobile: false,
             title: siteConfig.title,
             inject: true,
