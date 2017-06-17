@@ -1,6 +1,7 @@
 var webpack = require('webpack');
 var path = require('path');
 var glob = require('glob');
+var fs = require('fs');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var PurifyCSSPlugin = require('purifycss-webpack');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
@@ -26,16 +27,19 @@ module.exports = {
 
 	output: {
 		path: path.resolve(__dirname, './public'),
-		filename: 'js/[name].[chunkhash].js',
+		filename: 'js/[name].[hash].js',
         publicPath: siteConfig.publicPath
 	},
+
+    cache: false,
 
     devtool: sourceMap,
 
     devServer: {
-        contentBase: path.join(__dirname, "dist"),
+        contentBase: path.join(__dirname, "public"),
         compress: true,
         port: 9000,
+//        inline: true,
         clientLogLevel: "info"
     },
 
@@ -96,17 +100,8 @@ module.exports = {
             },
             {
                 test: /\.(png|jpe?g|gif)$/,
-                use: ['file-loader?name=images/[hash].[ext]', 'img-loader']
-            },
-//            {
-//                test: /\.html$/,
-//                use: [{
-//                    loader: 'html-loader',
-//                    options: {
-//                        minimize: true
-//                    }
-//                }]
-//            }
+                use: ['file-loader?name=images/[name].[ext]', 'img-loader']
+            }
         ]
     },
 
@@ -119,18 +114,18 @@ module.exports = {
             dry:      false
         }),
 
-        // export chunk manifest
-        function() {
-            if( conf.debug ) {
-                this.plugin('done', stats => {
-                    require('fs').writeFileSync(
-                        path.join(__dirname, 'stats/chunk-stats.json'),
-                        //JSON.stringify(stats.toJson().assetsByChunkName, 'utf8')
-                        JSON.stringify(stats.toJson(), 'utf8')
-                    );
-                });
-            }
-        },
+//        // export chunk manifest
+//        function() {
+//            if( conf.debug ) {
+//                this.plugin('done', stats => {
+//                    fs.writeFileSync(
+//                        path.join(__dirname, 'stats/chunk-stats.json'),
+//                        //JSON.stringify(stats.toJson().assetsByChunkName, 'utf8')
+//                        JSON.stringify(stats.toJson(), 'utf8')
+//                    );
+//                });
+//            }
+//        },
 
         // split vendor.js
         new webpack.optimize.CommonsChunkPlugin({
@@ -155,31 +150,13 @@ module.exports = {
 
         // minimize css files and remove unused style
         new PurifyCSSPlugin({
-            paths: glob.sync(path.join(__dirname, 'src/**/*.html')),
+            paths: glob.sync(path.join(__dirname, 'src/**/*.ejs')),
             minimize: inProduction
         }),
 
         // minimize javascript files.
         new webpack.LoaderOptionsPlugin({
             minimize: inProduction
-        }),
-
-        // for HTML
-        new HtmlWebpackPlugin({
-            //template: 'src/index.html'
-            template: path.resolve(__dirname, 'src/index.html'),
-            mobile: false,
-            title: siteConfig.title,
-            inject: true,
-            minify: {
-                collapseInlineTagWhitespace: inProduction,
-                collapseWhitespace: inProduction,
-                removeComments: inProduction,
-                minifyCSS: inProduction,
-                minifyJS: inProduction,
-                minifyURLs: inProduction
-            },
-            googleAnalytics: siteConfig.googleAnalytics
         }),
 
         // for favicons
@@ -208,9 +185,35 @@ module.exports = {
 
         // for moment.js
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /ja|cn/),
-
     ]
 };
+
+// for HTML
+var paths = glob.sync(path.join(__dirname, 'src/**/*.ejs'));
+paths.forEach( (htmlFilePath, index) => {
+
+    var filename = htmlFilePath.replace(path.join(__dirname, 'src/'), '');
+    filename = filename.replace(/\.ejs$/, '.html');
+
+    module.exports.plugins.push(
+        new HtmlWebpackPlugin({
+            template: 'ejs-compiled-loader!' + htmlFilePath,
+            filename: filename,
+            mobile: false,
+            title: siteConfig.title,
+            inject: true,
+            minify: {
+                collapseInlineTagWhitespace: inProduction,
+                collapseWhitespace: inProduction,
+                removeComments: inProduction,
+                minifyCSS: inProduction,
+                minifyJS: inProduction,
+                minifyURLs: inProduction
+            },
+            googleAnalytics: siteConfig.googleAnalytics
+        })
+    );
+});
 
 if( inProduction ) {
     module.exports.plugins.push(
