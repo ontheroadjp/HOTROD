@@ -2,7 +2,6 @@ var webpack = require('webpack');
 var path = require('path');
 var glob = require('glob');
 var fs = require('fs');
-var ejs = require('ejs');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var PurifyCSSPlugin = require('purifycss-webpack');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
@@ -14,11 +13,6 @@ var sourceMap = inProduction ? '' : 'source-map';
 var conf = require('./config.json');
 var siteConfig = require('./conf/site.json');
 var favicons = require('./conf/favicons.json');
-
-var EJSRenderPlugin = require('./plugins/EJSRenderPlugin.js');
-var FileListPlugin = require('./plugins/FileListPlugin.js');
-
-//var logo_250 = require("ejs-compiled!./src/images/logo_white_250.png");
 
 module.exports = {
     //context: srcPath,
@@ -34,7 +28,6 @@ module.exports = {
 	output: {
 		path: path.resolve(__dirname, './public'),
 		filename: 'js/[name].[hash].js',
-        //publicPath: 'http://localhost:9000' + siteConfig.publicPath
         publicPath: siteConfig.publicPath
 	},
 
@@ -192,22 +185,20 @@ module.exports = {
 
         // for moment.js
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /ja|cn/),
-
-        new FileListPlugin({ options: '' }),
     ]
 };
 
 // for HTML
-console.log('-------------------- @webpack.config.js --------------------');
-//var paths = glob.sync(path.join(__dirname, 'src/**/*.html'));
 var paths = glob.sync(path.join(__dirname, 'src/**/*.ejs'));
 paths.forEach( (htmlFilePath, index) => {
+
+    var filename = htmlFilePath.replace(path.join(__dirname, 'src/'), '');
+    filename = filename.replace(/\.ejs$/, '.html');
+
     module.exports.plugins.push(
         new HtmlWebpackPlugin({
-//            template: htmlFilePath,
-//            filename: htmlFilePath.replace(path.join(__dirname, 'src/'), ''),
             template: 'ejs-compiled-loader!' + htmlFilePath,
-            filename: htmlFilePath.replace(path.join(__dirname, 'src/'), '').replace(/\.ejs$/, '.html'),
+            filename: filename,
             mobile: false,
             title: siteConfig.title,
             inject: true,
@@ -223,8 +214,6 @@ paths.forEach( (htmlFilePath, index) => {
         })
     );
 });
-
-//module.exports.plugins.push( new EJSRenderPlugin({ options: '' }));
 
 if( inProduction ) {
     module.exports.plugins.push(
